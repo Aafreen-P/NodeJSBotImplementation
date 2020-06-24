@@ -19,15 +19,15 @@ class EchoBot extends ActivityHandler {
         this.onMessage(async (context, next) => {
             var replyText = 'no input';
             var INCSuccess= 'N';
-            console.log(context.activity.text);
             console.log(replyText);
+            
             if(context.activity.text == 'hey'){
                 replyText = 'Hey wassup';
             }else if(context.activity.text=='update'){
-                replyText='Enter the INC number'
+                replyText='Enter the INC number'                
 
-            }else if(context.activity.text=='INC000000003006'){
-                console.log(context.activity.text);
+            }else if(context.activity.text.startsWith('INC')){
+               const inc=context.activity.text;
                 //MS Graph API Code
                 request({
                     url: 'https://login.microsoftonline.com/ac26cf21-c02e-433a-8cca-237e1afccbd1/oauth2/v2.0/token',
@@ -100,6 +100,7 @@ class EchoBot extends ActivityHandler {
                                 })
                             })
                                 // Remedy Code
+       
                 httpClient.post("http://vtrvitstp-03:8008/api/jwt/login", args, function (data, response) {
                     console.log("statuscode :"+response.statusCode);
                 var args_update = {
@@ -118,10 +119,26 @@ class EchoBot extends ActivityHandler {
                     'Content-Type': "application/json"
                     }
                 };
-                
-                httpClient.put("http://VTRVITSTP-03:8008/api/arsys/v1/entry/HPD:IncidentInterface/INC000000002108%7CINC000000002108", args_update, function (data, response) {
+                         //get incident entry Id
+                         httpClient.get("http://VTRVITSTP-03:8008/api/arsys/v1/entry/HPD:IncidentInterface?q='Incident Number'=\""+inc+"\"", args_update, function (data1, res1) {
+                            console.log("get  statuscode :"+res1.statusCode);   
+                           // console.log("data of entry id :"+data1);
+                            var jsonObject=JSON.parse(JSON.stringify(data1)); 
+                            var urlOfInc;
+                            _.map( jsonObject, function(content) {
+                              _.map(content,function(data){
+                                _.map(data._links,function(data1){
+                                  _.map(data1,function(data2){
+                                    urlOfInc=JSON.stringify(data2.href);
+                                    console.log("url:"+JSON.stringify(data2.href));
+                                })
+                              })
+                            })
+                            })
+                            var url=JSON.parse(urlOfInc);
+                httpClient.put(url, args_update, function (data, response) {
                 console.log("final statuscode :"+response.statusCode);            
-                console.log(response.headers);
+                
                 if(response.statusCode == '204'){
                     INCSuccess='Y';
                 }
@@ -136,9 +153,10 @@ class EchoBot extends ActivityHandler {
                    });
                   
                   });
+                });
 
 
-         replyText=`${ context.activity.text } Updated Successfully`;
+         replyText=`${ inc } Updated Successfully`;
             
         }else{            
             replyText = `Echo: ${ context.activity.text }`;
