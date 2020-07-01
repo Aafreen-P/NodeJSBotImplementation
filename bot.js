@@ -11,7 +11,7 @@ class EchoBot extends ActivityHandler {
     constructor() {
         super();
         var args = {
-            data: { username: 'Aafreen_Patel',
+            data: { username: 'subhangi.karan',
             password: 'remedy'},
             headers: { "Content-Type": "application/x-www-form-urlencoded" }
           };
@@ -28,6 +28,7 @@ class EchoBot extends ActivityHandler {
 
             }else if(context.activity.text.startsWith('INC')){
                const inc=context.activity.text;
+               var todayDate = new Date().toISOString().slice(0,10);
                 //MS Graph API Code
                 request({
                     url: 'https://login.microsoftonline.com/ac26cf21-c02e-433a-8cca-237e1afccbd1/oauth2/v2.0/token',
@@ -85,21 +86,28 @@ class EchoBot extends ActivityHandler {
                   httpClient.get("https://graph.microsoft.com/beta/teams/" + teamId + "/channels/" + channelId + "/messages", args_update, function (data3, response3) {
                           var contents="";
                           var jsonObject3=JSON.parse(data3);
+                     
                           _.map( jsonObject3.value, function(content) {
+                            var dateStr=content.createdDateTime;
+                            var todaysDateFromMsg=dateStr.substring(0,10);
+                            if(todayDate === todaysDateFromMsg) {                            
                               _.map(content.from,function(data){  
                                 if(JSON.stringify(data) != 'null')            
                                  contents=contents.concat(JSON.stringify(data.displayName));
                                  })
                                  _.map(content.body,function(data1){ 
                                   var jsonObject4=content.body;
+                            //      console.log("data:"+JSON.stringify(jsonObject4.content)+data1==="text");
                                   if(data1==="text")  { 
                                   contents=contents.concat(': ',JSON.stringify(jsonObject4.content)+"\n");
                   
                                   }
                                //  }
                                 })
+                              } 
                             })
-                                // Remedy Code
+                           console.log("contents::"+contents);
+                             // Remedy Code
        
                 httpClient.post("http://vtrvitstp-03:8008/api/jwt/login", args, function (data, response) {
                     console.log("statuscode :"+response.statusCode);
