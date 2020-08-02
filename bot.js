@@ -60,16 +60,21 @@ class TeamsConversationBot extends TeamsActivityHandler {
         // See https://aka.ms/about-bot-activity-message to learn more about the message and other activity types.
         this.onMessage(async (context, next) => {
 
-          //  const didBotWelcomedUser = await this.welcomedUserProperty.get(context, false);
+            const didBotWelcomedUser = await this.welcomedUserProperty.get(context, false);
        
-          
-                ///await this.welcomedUserProperty.set(context, true);
-            
+            if (didBotWelcomedUser === false) {
+                // The channel should send the user name in the 'From' object
+                const userName = context.activity.from.name;
+                
+                await this.sendSuggestedActions(context);
+                // Set the flag indicating the bot handled the user's first message.
+                await this.welcomedUserProperty.set(context, true);
+            } else {
                 // This example uses an exact match on user's input utterance.
                 // Consider using LUIS or QnA for Natural Language Processing.
                 await this.dispatchToIntentAsync(context);
         
-                
+                }
            
       
             await next();
@@ -85,7 +90,6 @@ class TeamsConversationBot extends TeamsActivityHandler {
         // Sends welcome messages to conversation members when they join the conversation.
 // Messages are only sent to conversation members who aren't the bot.
 this.onMembersAdded(async (context, next) => {
-    await this.welcomedUserProperty.set(context, true);
     // Iterate over all new members added to the conversation
     for (const idx in context.activity.membersAdded) {
         // Greet anyone that was not the target (recipient) of this message.
